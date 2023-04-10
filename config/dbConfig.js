@@ -1,4 +1,5 @@
-const mongoose=require('mongoose');
+const mongoose=require('mongoose')
+
 mongoose.connect(process.env.MONGODB_URL);
 
 const connection=mongoose.connection;
@@ -8,8 +9,9 @@ connection.on('connected',()=>{
 })
 
 
-connection.on('err',(err)=>{
+connection.on('error',(err)=>{
     console.log(`Mongo db not connected`,err)
 })
 
 module.exports=mongoose
+
