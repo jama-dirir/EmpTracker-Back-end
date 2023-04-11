@@ -2,13 +2,26 @@ const router=require('express').Router();
 const User=require('../models/userModel');
 const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
+const authMiddleware = require('../../client/src/middleWares/authMiddleware');
 
 router.post('/register',async(req,res)=>{
     try {
+        const firstName=req.body.firstName;
+        const lastName=req.body.lastName;
+        const email=req.body.email;
+        const password=req.body.password;
+
+        //Checking empty fields 
+        if(firstName =='' || lastName =='' || email =='' || password ==''){
+            throw new Error(`Please provide empty fields !`);
+        }else{
+            throw new Error(`Please provide empty fields !`);
+        }
+
         //check, if the user already exists
-        const userExists=User.findOne({email:req.body.email});
+        const userExists=await User.findOne({email:req.body.email});
         if(userExists){
-            throw new error('User has already exists');
+            throw new Error('User has already exists');
         }
 
         //Hash the password
@@ -30,6 +43,7 @@ router.post('/register',async(req,res)=>{
             success:false,
             message:error.message
         })
+        
     }
 })
 
@@ -39,7 +53,7 @@ router.post('/login',async(req,res)=>{
      //check, if the user exists
      const user=await User.findOne({email:req.body.email});
      if(!user){
-         throw new error(`User doesn't exists`)
+        throw new Error(`User doesn't exists`)
      }
  
      //Check, if the password is correct
@@ -49,14 +63,15 @@ router.post('/login',async(req,res)=>{
      )
  
      if(!correctPassword){
-         throw new error(`Invalid password !`)
+        throw new Error(`Invalid password !`)
      }
  
      //Create and assign token 
      const token=await jwt.sign({userId:user._id},process.env.SECRET_TOKEN,{expiresIn:'1d'})
      res.send({
          success:true,
-         data:token
+         data:token,
+         message:'Logged successfully'
      })
      
    } catch (error) {
@@ -66,6 +81,21 @@ router.post('/login',async(req,res)=>{
      })
    }
 
+})
+
+router.get('/logged-in-user',authMiddleware,async(req,res)=>{
+    try {
+        const user=await user.findOne({_id:req.body.userId})
+         //Ignore the password
+         user.password=undefined;
+         res.send({
+            success:true,
+            data:user,
+            message:'User found'
+         })
+    } catch (error) {
+        throw Error(error.message)
+    }
 })
 
 module.exports=router
