@@ -2,22 +2,12 @@ const router=require('express').Router();
 const User=require('../models/userModel');
 const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
+
 const authMiddleware = require('../../client/src/middleWares/authMiddleware');
 
+//Register new user
 router.post('/register',async(req,res)=>{
     try {
-        const firstName=req.body.firstName;
-        const lastName=req.body.lastName;
-        const email=req.body.email;
-        const password=req.body.password;
-
-        //Checking empty fields 
-        if(firstName =='' || lastName =='' || email =='' || password ==''){
-            throw new Error(`Please provide empty fields !`);
-        }else{
-            throw new Error(`Please provide empty fields !`);
-        }
-
         //check, if the user already exists
         const userExists=await User.findOne({email:req.body.email});
         if(userExists){
@@ -47,7 +37,7 @@ router.post('/register',async(req,res)=>{
     }
 })
 
-
+//Login user
 router.post('/login',async(req,res)=>{
    try {
      //check, if the user exists
@@ -83,18 +73,23 @@ router.post('/login',async(req,res)=>{
 
 })
 
+//Get Logged in user
 router.get('/logged-in-user',authMiddleware,async(req,res)=>{
     try {
-        const user=await user.findOne({_id:req.body.userId})
-         //Ignore the password
+        const user=await User.findOne({_id:req.body.userId})
+         //Ignore the password from the user object
          user.password=undefined;
+
          res.send({
             success:true,
             data:user,
             message:'User found'
          })
     } catch (error) {
-        throw Error(error.message)
+        res.send({
+        success:false,
+        message:error.message
+     })
     }
 })
 
